@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+</head>
+<body>
+ <!-- Current Weather -->
+ <div class="row mt-4">
+    <div class="col-md-6 offset-md-3">
+        <div class="card text-center">
+            <div class="card-header">
+                Current Weather
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ current.temp }}°F</h5>
+                <p class="card-text">{{ current.weather }}</p>
+                <img class="img-fluid" src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
