@@ -2,7 +2,24 @@ import requests
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from datetime import datetime  # Import datetime for current time and date
+from datetime import datetime  
+import os 
+import requests
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+from datetime import datetime
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+import os
+from django.shortcuts import redirect, render
+import requests
+import subprocess# Import datetime for current time and date
+
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
 
 def fetch_weather():
     """
@@ -51,114 +68,105 @@ def fetch_weather():
 
     return current_weather, forecast_list
 
+def fetch_calendar_events():
+    """
+    Fetch Google Calendar events using the Calendar API.
+    """
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    service = build('calendar', 'v3', credentials=creds)
+    now = datetime.utcnow().isoformat() + 'Z'
+    events_result = service.events().list(calendarId='primary', timeMin=now, maxResults=10, singleEvents=True, orderBy='startTime').execute()
+    events = events_result.get('items', [])
+
+    return [
+        {
+            'start': event['start'].get('dateTime', event['start'].get('date')),
+            'summary': event.get('summary', 'No Title')
+        }
+        for event in events
+    ]
+
 def create_gui():
     """
-    Create a Tkinter GUI that mimics the home.html layout and displays weather data.
+    Create a Tkinter GUI that displays weather data and Google Calendar events.
     """
-    # Fetch weather data
+    # Fetch weather and calendar data
     try:
         current_weather, forecast_list = fetch_weather()
+        calendar_events = fetch_calendar_events()
     except Exception as e:
-        print(f"Error fetching weather: {e}")
+        print(f"Error fetching data: {e}")
         return
 
     # Initialize Tkinter root window
     root = tk.Tk()
-    root.title("Weather GUI")
-    root.geometry("800x600")
-    root.configure(bg="#808080")  # Grey background
+    root.title("Magic Mirror GUI")
+    root.geometry("1024x768")
+    root.configure(bg="black")
 
-    # Simulated Transparency: Light grey for boxes
-    box_color = "#b3b3b3"  # Blended grey (approx. 25% transparent effect)
+    # Transparent frame colors
+    frame_color = "#D3D3D3"
+    header_color = "#444444"
+    text_color = "white"
 
     # Title
-    title = tk.Label(root, text="Magic Mirror - Weather", font=("Arial", 20, "bold"), bg="#808080", fg="white")
+    title = tk.Label(root, text="Magic Mirror Dashboard", font=("Arial", 24, "bold"), bg=header_color, fg=text_color)
     title.pack(pady=10)
 
-    # Current Time and Date
-    now = datetime.now()
-    current_time = now.strftime("%I:%M %p")  # Format time as HH:MM AM/PM
-    current_date = now.strftime("%A, %B %d, %Y")  # Format date as Day, Month DD, YYYY
-    time_date_frame = tk.Frame(root, bg=box_color)
-    time_date_frame.pack(pady=10, padx=20, fill="x")
+    # Forecast Section (Top Center)
+    forecast_frame = tk.Frame(root, bg=frame_color)
+    forecast_frame.pack(pady=10)
+    tk.Label(forecast_frame, text="5-Day Forecast", font=("Arial", 18, "bold"), bg=header_color, fg=text_color).pack()
 
-    time_label = tk.Label(
-        time_date_frame,
-        text=f"Time: {current_time}",
-        font=("Arial", 14),
-        bg=box_color,
-        fg="white"
-    )
-    time_label.pack(side="left", padx=10, pady=10)
-
-    date_label = tk.Label(
-        time_date_frame,
-        text=f"Date: {current_date}",
-        font=("Arial", 14),
-        bg=box_color,
-        fg="white"
-    )
-    date_label.pack(side="left", padx=10, pady=10)
-
-    # Current Weather Section
-    current_frame = tk.Frame(root, bg=box_color)
-    current_frame.pack(pady=10, padx=20, fill="x")
-    
-    # Current Weather Icon
-    icon_url = f"http://openweathermap.org/img/wn/{current_weather['icon']}@2x.png"
-    icon_response = requests.get(icon_url, stream=True)
-    icon_image = Image.open(icon_response.raw)
-    icon_photo = ImageTk.PhotoImage(icon_image)
-
-    icon_label = tk.Label(current_frame, image=icon_photo, bg=box_color)
-    icon_label.image = icon_photo  # Keep reference to avoid garbage collection
-    icon_label.pack(side="left", padx=10, pady=10)
-
-    # Current Weather Info
-    weather_info = tk.Label(
-        current_frame,
-        text=f"Temperature: {current_weather['temp']}\nCondition: {current_weather['weather']}",
-        font=("Arial", 14),
-        bg=box_color,
-        fg="white",
-        justify="left"
-    )
-    weather_info.pack(side="left", padx=10, pady=10)
-
-    # Forecast Section
-    forecast_title = tk.Label(root, text="3-Hour Forecast (Next 15 Hours)", font=("Arial", 16, "bold"), bg="#808080", fg="white")
-    forecast_title.pack(pady=10)
-
-    forecast_frame = tk.Frame(root, bg="#808080")
-    forecast_frame.pack(pady=10, padx=20)
+    forecast_cards = tk.Frame(forecast_frame, bg=frame_color)
+    forecast_cards.pack()
 
     for forecast in forecast_list:
-        # Forecast Card
-        card = tk.Frame(forecast_frame, bg=box_color)
-        card.pack(side="left", padx=10, pady=10, fill="y")
+        card = tk.Frame(forecast_cards, bg=frame_color)
+        card.pack(side="left", padx=5, pady=5)
+        tk.Label(card, text=forecast['datetime'], font=("Arial", 12), bg=frame_color, fg="black").pack()
+        tk.Label(card, text=f"Temp: {forecast['temp']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
+        tk.Label(card, text=forecast['weather'], font=("Arial", 12), bg=frame_color, fg="black").pack()
 
-        # Forecast Icon
-        icon_url = f"http://openweathermap.org/img/wn/{forecast['icon']}@2x.png"
-        icon_response = requests.get(icon_url, stream=True)
-        icon_image = Image.open(icon_response.raw)
-        icon_photo = ImageTk.PhotoImage(icon_image)
+    # Left-Aligned Column
+    column_frame = tk.Frame(root, bg=frame_color)
+    column_frame.pack(side="left", padx=10, pady=10, fill="y")
 
-        icon_label = tk.Label(card, image=icon_photo, bg=box_color)
-        icon_label.image = icon_photo  # Keep reference to avoid garbage collection
-        icon_label.pack(pady=5)
+    # Current Weather
+    weather_frame = tk.Frame(column_frame, bg=frame_color)
+    weather_frame.pack(fill="x", pady=5)
+    tk.Label(weather_frame, text="Current Weather", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
+    tk.Label(weather_frame, text=f"Temp: {current_weather['temp']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
+    tk.Label(weather_frame, text=current_weather['weather'], font=("Arial", 12), bg=frame_color, fg="black").pack()
 
-        # Forecast Info
-        forecast_info = tk.Label(
-            card,
-            text=f"{forecast['datetime']}\n{forecast['temp']}\n{forecast['weather']}",
-            font=("Arial", 12),
-            bg=box_color,
-            fg="white",
-            justify="center"
-        )
-        forecast_info.pack(pady=5)
+    # Current Time and Date
+    time_frame = tk.Frame(column_frame, bg=frame_color)
+    time_frame.pack(fill="x", pady=5)
+    tk.Label(time_frame, text="Current Time and Date", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
 
-    # Run Tkinter Main Loop
+    now = datetime.now()
+    tk.Label(time_frame, text=now.strftime("%I:%M %p"), font=("Arial", 12), bg=frame_color, fg="black").pack()
+    tk.Label(time_frame, text=now.strftime("%A, %B %d, %Y"), font=("Arial", 12), bg=frame_color, fg="black").pack()
+
+    # Calendar Events
+    events_frame = tk.Frame(column_frame, bg=frame_color)
+    events_frame.pack(fill="x", pady=5)
+    tk.Label(events_frame, text="Upcoming Events", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
+
+    for event in calendar_events:
+        tk.Label(events_frame, text=f"{event['start']} - {event['summary']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
+
     root.mainloop()
 
 if __name__ == "__main__":

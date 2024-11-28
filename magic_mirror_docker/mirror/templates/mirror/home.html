@@ -1,114 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+
+    <meta{% load static %} charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Mirror</title>
-    <!-- Include Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .current-time {
-            font-size: 1.5rem;
-            font-weight: bold;
+        body {
+            background-image: url("{% static '/mirror/images/background.webp' %}"); /* Replace with your background image path */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: yellow; /* Default font color */
+            background-color: black; /* Fallback to black */
         }
-    </style>
+        .card {
+            color: black; /* Font color for text inside cards */
+            border: none; /* Remove borders for a clean look */
+            backdrop-filter: blur(25px); /* Optional: Add a slight blur for a frosted glass effect */
+        }
+        .card-header {
+            background-color: rgba(68, 68, 68, 0.5); /* Slightly darker transparent grey for headers */
+            color: white; /* Font color for headers */
+        }
+        .list-group-item {
+            border: none; /* Remove borders */
+            color: black; /* Font color for list items */
+        }
+    
+        /* 7 rainbow colors cycling for calendar events */
+        .list-group-item:nth-child(7n+1) {
+            background-color: red;
+        }
+        .list-group-item:nth-child(7n+2) {
+            background-color: orange;
+        }
+        .list-group-item:nth-child(7n+3) {
+            background-color: yellow;
+        }
+        .list-group-item:nth-child(7n+4) {
+            background-color: green;
+        }
+        .list-group-item:nth-child(7n+5) {
+            background-color: blue;
+        }
+        .list-group-item:nth-child(7n+6) {
+            background-color: indigo;
+        }
+        .list-group-item:nth-child(7n+0) {
+            background-color: violet;
+        }
+    
+        .btn-primary {
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background-color: #007bff;
+            border-color: #0056b3;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        
+            .forecast-container {
+                margin-bottom: 20px; /* Add space below the forecast section */
+            }
+        
+            .forecast-item {
+                flex: 1;
+                margin: 10px;
+                min-width: 100px;
+            }
+        
+            .forecast-item img {
+                max-width: 100%;
+                height: auto;
+            }
+        </style>
+        
+    
+    
 </head>
 <body>
-    <h1>Welcome to the Weather App</h1>
-    
-    <!-- Link to trigger GUI -->
-    <a href="{% url 'launch_gui' %}" class="btn btn-primary">Launch GUI</a>
-
-    <div class="container mt-4">
-        <h1 class="text-center">Welcome to Magic Mirror</h1>
-        
-        <!-- Time and Day -->
-        <div class="row mt-4">
-            <div class="col-md-6 offset-md-3">
-                <div class="card text-center">
-                    <div class="card-header">
-                        Current Time and Day
-                    </div>
-                    <div class="card-body">
-                        <div class="current-time" id="current-time"></div>
-                        <div class="current-day" id="current-day"></div>
+    <div class="container-fluid mt-4">
+        <!-- Top Section: Current Time and 5-Day Forecast -->
+        <div class="row mb-4">
+            <!-- Left Column: Current Time -->
+            <div class="col-md-3">
+                <div class="current-time-container">
+                    <div class="card">
+                        <div class="card-header">
+                            Current Time
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 id="current-time" class="current-time"></h5>
+                            <p id="current-day"></p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-  <!-- Current Weather -->
-  <div class="row mt-4">
-    <div class="col-md-6 offset-md-3">
-        <div class="card text-center">
-            <div class="card-header">
-                Current Weather
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ current.temp }}°F</h5>
-                <p class="card-text">{{ current.weather }}</p>
-                <img class="img-fluid" src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
-            </div>
-        </div>
-    </div>
-</div>
-</div>
 
-<!-- 5-Day Forecast -->
-<div class="row mt-4">
-    <h2 class="text-center mb-4">3-Hour Forecast (Next 15 Hours)</h2>
-    {% for forecast in forecast %}
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-header">
-                    {{ forecast.datetime }}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ forecast.temp }}°F</h5>
-                    <p class="card-text">{{ forecast.weather }}</p>
-                    <img src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
+            <!-- Right Column: 5-Day Forecast -->
+            <div class="col-md-9">
+                <div class="forecast-container">
+                    <div class="card">
+                        <div class="card-header text-center">
+                            <h2>5-Day Forecast</h2>
+                        </div>
+                        <div class="card-body d-flex justify-content-around">
+                            {% for forecast in forecast %}
+                                <div class="forecast-item text-center">
+                                    <h5>{{ forecast.datetime }}</h5>
+                                    <img class="weather-icon" src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
+                                    <p><strong>{{ forecast.temp }}°F</strong></p>
+                                    <p>{{ forecast.weather }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    {% endfor %}
-</div>
 
-<!-- Weather Map -->
-<div class="row mt-4">
-    <h2 class="text-center mb-4">Weather Map</h2>
-    <div class="col-md-8 offset-md-2">
-        <div class="card text-center">
-            <div class="card-header">Temperature Map</div>
-            <div class="card-body">
-                <img class="img-fluid" src="{{ weather_map }}" alt="Weather map">
+        <!-- Main Content Row -->
+        <div class="row">
+            <!-- Left Column: Current Weather -->
+            <div class="col-md-4">
+                <div class="current-weather mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            Current Weather
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ current.temp }}°F</h5>
+                            <p class="card-text">{{ current.weather }}</p>
+                            <img class="weather-icon" src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Google Calendar Events -->
+            <div class="col-md-8">
+                <div class="events-container">
+                    <div class="card">
+                        <div class="card-header">
+                            Upcoming Events
+                        </div>
+                        <div class="card-body">
+                            {% if events %}
+                                <ul class="list-group">
+                                    {% for event in events %}
+                                        <li class="list-group-item">
+                                            <div><strong>Date:</strong> {{ event.start }}</div>
+                                            <div><strong>Event:</strong> {{ event.summary }}</div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No upcoming events.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-    <!-- Include Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Script to Update Time and Day -->
+    <!-- JavaScript for Time -->
     <script>
-        function updateTimeAndDay() {
+        function updateTime() {
             const now = new Date();
-            const timeOptions = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
-            const dayOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeElement = document.getElementById('current-time');
+            const dayElement = document.getElementById('current-day');
 
-            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
-            document.getElementById('current-day').textContent = now.toLocaleDateString('en-US', dayOptions);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            timeElement.textContent = now.toLocaleTimeString();
+            dayElement.textContent = now.toLocaleDateString(undefined, options);
         }
 
-        // Update time and day every second
-        setInterval(updateTimeAndDay, 1000);
-        updateTimeAndDay();
+        setInterval(updateTime, 1000); // Update every second
+        updateTime(); // Initial call
+    </script>
+</body>
+
+
+
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeElement = document.getElementById('current-time');
+            const dayElement = document.getElementById('current-day');
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            timeElement.textContent = now.toLocaleTimeString();
+            dayElement.textContent = now.toLocaleDateString(undefined, options);
+        }
+
+        setInterval(updateTime, 1000); // Update every second
+        updateTime(); // Initial call
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
