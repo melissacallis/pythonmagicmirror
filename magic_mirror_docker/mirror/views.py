@@ -194,20 +194,6 @@ def fetch_weather():
 
     return current_weather, forecast_list
 
- data["results"][:10]  # Get top 10 headlines
-        ]
-        return articles
-    except Exception as e:
-        print(f"Error fetching NYTimes headlines: {e}")
-        return []
-
-def home(request):
-    """
-    Display the home page with NYTimes headlines.
-    """
-    nytimes_headlines = fetch_nytimes_headlines()
-    return render(request, "mirror/home.html", {"nytimes_headlines": nytimes_headlines})
-
 def fetch_calendar_events():
     """
     Fetch Google Calendar events using the Calendar API.
@@ -317,5 +303,7 @@ def create_gui():
 
 if __name__ == "__main__":
     create_gui()
+
+
 
 

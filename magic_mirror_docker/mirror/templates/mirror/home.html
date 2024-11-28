@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <meta{% load static %} charset="UTF-8">
+    {% load static %}
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Mirror</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url("{% static '/mirror/images/background.webp' %}"); /* Replace with your background image path */
+            background-image: url("{% static 'mirror/images/background.webp' %}"); /* Replace with your background image path */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
             color: yellow; /* Default font color */
             background-color: black; /* Fallback to black */
         }
+
         .card {
             color: black; /* Font color for text inside cards */
             border: none; /* Remove borders for a clean look */
             backdrop-filter: blur(25px); /* Optional: Add a slight blur for a frosted glass effect */
         }
+
         .card-header {
             background-color: rgba(68, 68, 68, 0.5); /* Slightly darker transparent grey for headers */
             color: white; /* Font color for headers */
         }
+
         .list-group-item {
             border: none; /* Remove borders */
             color: black; /* Font color for list items */
         }
-    
+
         /* 7 rainbow colors cycling for calendar events */
         .list-group-item:nth-child(7n+1) {
             background-color: red;
@@ -51,7 +54,7 @@
         .list-group-item:nth-child(7n+0) {
             background-color: violet;
         }
-    
+
         .btn-primary {
             font-size: 16px;
             padding: 10px 20px;
@@ -63,25 +66,21 @@
             background-color: #0056b3;
         }
 
-        
-            .forecast-container {
-                margin-bottom: 20px; /* Add space below the forecast section */
-            }
-        
-            .forecast-item {
-                flex: 1;
-                margin: 10px;
-                min-width: 100px;
-            }
-        
-            .forecast-item img {
-                max-width: 100%;
-                height: auto;
-            }
-        </style>
-        
-    
-    
+        .forecast-container {
+            margin-bottom: 20px; /* Add space below the forecast section */
+        }
+
+        .forecast-item {
+            flex: 1;
+            margin: 10px;
+            min-width: 100px;
+        }
+
+        .forecast-item img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid mt-4">
@@ -186,25 +185,6 @@
     </script>
 </body>
 
-
-
-
-    <script>
-        function updateTime() {
-            const now = new Date();
-            const timeElement = document.getElementById('current-time');
-            const dayElement = document.getElementById('current-day');
-
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            timeElement.textContent = now.toLocaleTimeString();
-            dayElement.textContent = now.toLocaleDateString(undefined, options);
-        }
-
-        setInterval(updateTime, 1000); // Update every second
-        updateTime(); // Initial call
-    </script>
-</body>
-</html>
 
 
 
