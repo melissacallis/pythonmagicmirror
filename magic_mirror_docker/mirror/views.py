@@ -1,3 +1,4 @@
+
 import requests
 import tkinter as tk
 from tkinter import ttk
@@ -11,10 +12,12 @@ import os
 from django.shortcuts import redirect, render
 import requests
 import subprocess
-
+import datetime
+import random
 
 # Google Calendar API Scope
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
 
 def home(request):
     # OpenWeatherMap API details
@@ -42,9 +45,8 @@ def home(request):
         'temp': current_data['main']['temp'],
         'weather': current_data['weather'][0]['description'],
         'icon': current_data['weather'][0]['icon'],
-                   
     }
-        
+
     # Fetch forecast data
     forecast_response = requests.get(forecast_url, params=current_params)
     if forecast_response.status_code != 200:
@@ -64,22 +66,32 @@ def home(request):
     # Fetch Google Calendar events
     calendar_events = get_calendar_events()
 
+    # Fetch NY Times headlines
+    nytimes_headlines = fetch_nytimes_headlines()
+    
     # Pass data to the template
     context = {
         'current': current_weather,
         'forecast': forecast_list,
-        'events': calendar_events  # Add events to the context
-    }
+        'events': calendar_events,
+        'nytimes_headlines': nytimes_headlines,
+        'zen_saying': get_zen_saying()
+        }  # Add NY Times headlines to the
+    
     return render(request, 'mirror/home.html', context)
 
-
-import datetime
-import os.path
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-# Define the scope of access
+def get_zen_saying():
+    sayings = [
+"Feelings are just visitors. Let them come and go.",
+"Don’t fight with your thoughts; just observe them and they will dissolve.",
+"The mind loves to create problems, but it also loves to invent solutions.",
+"Be the sky, not the clouds.",
+"Happiness is your nature. It is not wrong to desire it. What is wrong is seeking it outside when it is inside.",
+    ]
+    return random.choice(sayings)
+    
+        
+ # Define the scope of access
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 def get_calendar_events():
@@ -191,6 +203,9 @@ def fetch_weather():
         }
         for item in forecast_data['list'][:5]
     ]
+    print(f"Current weather response: {current_response.json()}")
+    print(f"NY Times headlines: {fetch_nytimes_headlines()}")
+
 
     return current_weather, forecast_list
 
@@ -222,6 +237,33 @@ def fetch_calendar_events():
         }
         for event in events
     ]
+    
+def fetch_nytimes_headlines():
+    """
+    Fetch the latest NY Times headlines using the Top Stories API.
+        """
+    NYTIMES_API_KEY = "aJPG3CwEfz7Aeq73ItKUWxlHo2OiA2Yp"  # Replace with your actual API key
+    NYTIMES_API_URL = "https://api.nytimes.com/svc/topstories/v2/home.json"
+        
+    try:
+        # Send a GET request to the NY Times Top Stories API
+        response = requests.get(NYTIMES_API_URL, params={"api-key": NYTIMES_API_KEY})
+        response.raise_for_status()  # Raise an error for HTTP response codes 4xx/5xx
+        data = response.json()
+            
+            # Extract and return the top 10 headlines
+        return [
+            {"title": article["title"], "url": article["url"]}
+            for article in data.get("results", [])[:10]
+        ]
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error fetching NY Times headlines: {req_err}")
+    except KeyError as key_err:
+        print(f"Key error processing NY Times data: {key_err}")
+    except Exception as e:
+        print(f"Unexpected error fetching NY Times headlines: {e}")
+        
+    return []
 
 def create_gui():
     """

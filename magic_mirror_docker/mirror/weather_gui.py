@@ -96,6 +96,33 @@ def fetch_calendar_events():
         }
         for event in events
     ]
+    
+def fetch_nytimes_headlines():
+    """
+    Fetch the latest NY Times headlines using the Top Stories API.
+        """
+    NYTIMES_API_KEY = "aJPG3CwEfz7Aeq73ItKUWxlHo2OiA2Yp"  # Replace with your actual API key
+    NYTIMES_API_URL = "https://api.nytimes.com/svc/topstories/v2/home.json"
+        
+    try:
+        # Send a GET request to the NY Times Top Stories API
+        response = requests.get(NYTIMES_API_URL, params={"api-key": NYTIMES_API_KEY})
+        response.raise_for_status()  # Raise an error for HTTP response codes 4xx/5xx
+        data = response.json()
+            
+            # Extract and return the top 10 headlines
+        return [
+            {"title": article["title"], "url": article["url"]}
+            for article in data.get("results", [])[:10]
+        ]
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error fetching NY Times headlines: {req_err}")
+    except KeyError as key_err:
+        print(f"Key error processing NY Times data: {key_err}")
+    except Exception as e:
+        print(f"Unexpected error fetching NY Times headlines: {e}")
+        
+    return []
 
 def create_gui():
     """
