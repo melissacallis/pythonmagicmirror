@@ -1,1 +1,2 @@
-web: gunicorn mirror.wsgi
+web: gunicorn magic_mirror_docker.wsgi
+
