@@ -14,6 +14,12 @@ import requests
 import subprocess
 import datetime
 import random
+import sys
+from alpha_vantage.timeseries import TimeSeries
+import yfinance as yf
+
+import yfinance as yf
+
 
 # Google Calendar API Scope
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -64,10 +70,24 @@ def home(request):
     ]
 
     # Fetch Google Calendar events
-    calendar_events = get_calendar_events()
+    calendar_events = fetch_calendar_events()
 
     # Fetch NY Times headlines
     nytimes_headlines = fetch_nytimes_headlines()
+     # Default stock tickers
+    stock_tickers = ["AAPL", "GOOGL", "MSFT", "MMLP"]
+    
+
+    stock_data = []
+    for ticker in stock_tickers:
+        data = get_yahoo_stock_data(ticker)
+        if data:
+            stock_data.append(data)
+    print(f"Stock data passed to template: {stock_data}")
+
+    # Fetch stock data
+    #stock_data = [get_stock_data(ticker) for ticker in stock_tickers]
+
     
     # Pass data to the template
     context = {
@@ -75,10 +95,54 @@ def home(request):
         'forecast': forecast_list,
         'events': calendar_events,
         'nytimes_headlines': nytimes_headlines,
-        'zen_saying': get_zen_saying()
+        'zen_saying': get_zen_saying(),
+        "stocks": stock_data,
         }  # Add NY Times headlines to the
     
     return render(request, 'mirror/home.html', context)
+
+
+
+def get_yahoo_stock_data(ticker):
+    """
+    Fetch and print all raw stock data from the Yahoo Finance API for debugging.
+    """
+    try:
+        import yfinance as yf
+        
+        stock = yf.Ticker(ticker)
+        stock_info = stock.info
+
+        # Print the entire raw response to the terminal for debugging
+        print(f"Raw data fetched for {ticker}:")
+        for key, value in stock_info.items():
+            print(f"{key}: {value}")
+
+        # Example of extracting specific fields (you can customize these as needed)
+        stock_data = {
+            "symbol": stock_info.get("symbol", ticker),
+            "price": stock_info.get("currentPrice"),
+            "currency": stock_info.get("currency", "N/A"),
+            "fifty_two_week_high": stock_info.get("fiftyTwoWeekHigh"),
+            "fifty_two_week_low": stock_info.get("fiftyTwoWeekLow"),
+            "fifty_two_week_change": stock_info.get("52WeekChange"),
+            
+        }
+
+        return stock_data
+    except Exception as e:
+        print(f"Error fetching stock data for {ticker}: {e}")
+        return None
+    
+def fetch_full_stock_data_raw(ticker):
+    stock = yf.Ticker(ticker)
+    print(f"Raw object for {ticker}: {stock}")
+    print(f"Methods available: {dir(stock)}")
+
+   
+
+
+
 
 def get_zen_saying():
     sayings = [
@@ -93,47 +157,6 @@ def get_zen_saying():
         
  # Define the scope of access
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
-
-def get_calendar_events():
-    """
-    Fetches the next 10 upcoming events from the user's primary Google Calendar.
-    """
-    creds = None
-    # The file token.json stores the user's access and refresh tokens
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no valid credentials, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # Initiate the OAuth flow
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-    try:
-        # Build the service
-        service = build('calendar', 'v3', credentials=creds)
-        # Get the current time
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-        # Fetch the next 10 events
-        events_result = service.events().list(
-            calendarId='primary',
-            timeMin=now,
-            maxResults=10,
-            singleEvents=True,
-            orderBy='startTime'
-        ).execute()
-        events = events_result.get('items', [])
-        # Return the events
-        return events
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
 
 # Example usage
 if __name__ == '__main__':
@@ -209,34 +232,43 @@ def fetch_weather():
 
     return current_weather, forecast_list
 
-def fetch_calendar_events():
-    """
-    Fetch Google Calendar events using the Calendar API.
-    """
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+
+
+def format_event_datetime(event_datetime):
+    """Split event_datetime into date and time."""
+    try:
+        print(f"Raw event_datetime input: {event_datetime}")  # Debugging input
+        if 'T' in event_datetime:  # Check if it contains both date and time
+            date_part, time_part = event_datetime.split('T')
+            time_part = time_part.split('-')[0]  # Remove timezone info if present
+            return date_part, time_part  # Return date and time separately
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            return event_datetime, None  # Return only date if no time is present
+    except Exception as e:
+        print(f"Error formatting datetime: {e}")
+        return "Invalid Date", "Invalid Time"
 
-    service = build('calendar', 'v3', credentials=creds)
-    now = datetime.utcnow().isoformat() + 'Z'
-    events_result = service.events().list(calendarId='primary', timeMin=now, maxResults=10, singleEvents=True, orderBy='startTime').execute()
-    events = events_result.get('items', [])
 
-    return [
-        {
-            'start': event['start'].get('dateTime', event['start'].get('date')),
-            'summary': event.get('summary', 'No Title')
-        }
-        for event in events
+def fetch_calendar_events():
+    # Mocked Google Calendar data for demonstration
+    events = [
+        {"start": {"dateTime": "2024-11-29T19:00:00-06:00", "timeZone": "America/Chicago"}, "summary": "Time to take medicine"},
+        {"start": {"date": "2024-12-01"}, "summary": "Doctor's appointment"},
     ]
+
+    formatted_events = []
+    for event in events:
+        event_datetime = event["start"].get("dateTime", event["start"].get("date", ""))
+        date_part, time_part = format_event_datetime(event_datetime)  # Split into date and time
+        formatted_events.append({
+            "date": date_part,
+            "time": time_part,
+            "summary": event["summary"],
+        })
+
+    print(f"Formatted events: {formatted_events}")  # Debugging formatted output
+    return formatted_events
+
     
 def fetch_nytimes_headlines():
     """
