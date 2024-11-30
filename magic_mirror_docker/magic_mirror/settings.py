@@ -17,6 +17,11 @@ import dj_database_url
 import django_heroku
 from decouple import config
 
+import os
+
+# Load the .env file
+load_dotenv()
+
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
