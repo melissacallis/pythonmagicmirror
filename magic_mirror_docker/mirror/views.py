@@ -1,8 +1,6 @@
 
 import requests
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
+
 from datetime import datetime
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -11,14 +9,10 @@ from googleapiclient.discovery import build
 import os
 from django.shortcuts import redirect, render
 import requests
-import subprocess
-import datetime
 import random
 import sys
-from alpha_vantage.timeseries import TimeSeries
 import yfinance as yf
 
-import yfinance as yf
 
 
 # Google Calendar API Scope
