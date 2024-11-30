@@ -27,7 +27,7 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 def home(request):
     # OpenWeatherMap API details
-    api_key = 'd60e365d43140a46b3afae19a3968f0e'  # Replace with your actual OpenWeatherMap API key
+    api_key = os.getenv("API_KEY_WEATHER")  # Replace with your actual OpenWeatherMap API key
     latitude = 27.800583
     longitude = -97.396378
 
@@ -99,6 +99,9 @@ def home(request):
         "stocks": stock_data,
         }  # Add NY Times headlines to the
     
+    print(f"API_KEY_WEATHER: {api_key}")
+
+    
     return render(request, 'mirror/home.html', context)
 
 
@@ -154,9 +157,8 @@ def get_zen_saying():
     ]
     return random.choice(sayings)
     
-        
- # Define the scope of access
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+     
+
 
 # Example usage
 if __name__ == '__main__':
@@ -171,31 +173,11 @@ if __name__ == '__main__':
             print(f"{start}: {summary}")
 
 
-def launch_gui(request):
-    """
-    Handles the request to launch the GUI application.
-    """
-    try:
-        # Provide the absolute path to weather_gui.py
-        gui_script_path = os.path.join(
-            "C:/Users/calli/OneDrive/Documents/GitHub/pythonmagicmirror/magic_mirror_docker/mirror/weather_gui.py"
-        )
-
-        # Launch the GUI application
-        subprocess.Popen(["python", gui_script_path], shell=True)
-
-        # Redirect to the home page after launching the GUI
-        return redirect("home")
-    except Exception as e:
-        # Render an error page if launching GUI fails
-        return render(request, 'mirror/error.html', {'error': f"Failed to launch GUI: {str(e)}"})
-
-
 def fetch_weather():
     """
     Fetch current weather and forecast data from OpenWeatherMap API.
     """
-    api_key = 'd60e365d43140a46b3afae19a3968f0'
+    api_key = os.getenv("API_KEY_WEATHER")
     latitude = 27.800583
     longitude = -97.396378
 
@@ -274,7 +256,7 @@ def fetch_nytimes_headlines():
     """
     Fetch the latest NY Times headlines using the Top Stories API.
         """
-    NYTIMES_API_KEY = "aJPG3CwEfz7Aeq73ItKUWxlHo2OiA2Yp"  # Replace with your actual API key
+    NYTIMES_API_KEY = os.getenv("NYTIMES_API_KEY")  # Replace with your actual API key
     NYTIMES_API_URL = "https://api.nytimes.com/svc/topstories/v2/home.json"
         
     try:
@@ -296,88 +278,6 @@ def fetch_nytimes_headlines():
         print(f"Unexpected error fetching NY Times headlines: {e}")
         
     return []
-
-def create_gui():
-    """
-    Create a Tkinter GUI that mimics the home.html layout and displays weather data and calendar events.
-    """
-    # Fetch weather and calendar data
-    try:
-        current_weather, forecast_list = fetch_weather()
-        calendar_events = fetch_calendar_events()
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        return
-
-    # Initialize Tkinter root window
-    root = tk.Tk()
-    root.title("Magic Mirror GUI")
-    root.geometry("1024x768")
-
-    # Background Image
-    bg_image_path = "background.jpg"  # Replace with the actual image path
-    bg_image = Image.open(bg_image_path)
-    bg_photo = ImageTk.PhotoImage(bg_image)
-    bg_label = tk.Label(root, image=bg_photo)
-    bg_label.place(relwidth=1, relheight=1)
-
-    # Transparent frame colors
-    frame_color = "#D3D3D3"
-    header_color = "#444444"
-    text_color = "white"
-
-    # Title
-    title = tk.Label(root, text="Magic Mirror Dashboard", font=("Arial", 24, "bold"), bg=header_color, fg=text_color)
-    title.pack(pady=10)
-
-    # Forecast Section (Top Center)
-    forecast_frame = tk.Frame(root, bg=frame_color)
-    forecast_frame.pack(pady=10)
-    tk.Label(forecast_frame, text="5-Day Forecast", font=("Arial", 18, "bold"), bg=header_color, fg=text_color).pack()
-
-    forecast_cards = tk.Frame(forecast_frame, bg=frame_color)
-    forecast_cards.pack()
-
-    for forecast in forecast_list:
-        card = tk.Frame(forecast_cards, bg=frame_color)
-        card.pack(side="left", padx=5, pady=5)
-        tk.Label(card, text=forecast['datetime'], font=("Arial", 12), bg=frame_color, fg="black").pack()
-        tk.Label(card, text=f"Temp: {forecast['temp']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
-        tk.Label(card, text=forecast['weather'], font=("Arial", 12), bg=frame_color, fg="black").pack()
-
-    # Left-Aligned Column
-    column_frame = tk.Frame(root, bg=frame_color)
-    column_frame.pack(side="left", padx=10, pady=10, fill="y")
-
-    # Current Weather
-    weather_frame = tk.Frame(column_frame, bg=frame_color)
-    weather_frame.pack(fill="x", pady=5)
-    tk.Label(weather_frame, text="Current Weather", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
-    tk.Label(weather_frame, text=f"Temp: {current_weather['temp']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
-    tk.Label(weather_frame, text=current_weather['weather'], font=("Arial", 12), bg=frame_color, fg="black").pack()
-
-    # Current Time and Date
-    time_frame = tk.Frame(column_frame, bg=frame_color)
-    time_frame.pack(fill="x", pady=5)
-    tk.Label(time_frame, text="Current Time and Date", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
-
-    now = datetime.now()
-    tk.Label(time_frame, text=now.strftime("%I:%M %p"), font=("Arial", 12), bg=frame_color, fg="black").pack()
-    tk.Label(time_frame, text=now.strftime("%A, %B %d, %Y"), font=("Arial", 12), bg=frame_color, fg="black").pack()
-
-    # Calendar Events
-    events_frame = tk.Frame(column_frame, bg=frame_color)
-    events_frame.pack(fill="x", pady=5)
-    tk.Label(events_frame, text="Upcoming Events", font=("Arial", 14, "bold"), bg=header_color, fg=text_color).pack()
-
-    for event in calendar_events:
-        tk.Label(events_frame, text=f"{event['start']} - {event['summary']}", font=("Arial", 12), bg=frame_color, fg="black").pack()
-
-    root.mainloop()
-
-if __name__ == "__main__":
-    create_gui()
-
 
 
 
