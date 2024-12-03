@@ -7,31 +7,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
     <title>Magic Mirror</title>
+    <script src="{% static 'js/refresh.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+
+const backgroundImages = [
+            "{% static 'images/background_image1.webp' %}",
+            "{% static 'images/background_image2.webp' %}",
+            "{% static 'images/background_image3.webp' %}",
+            "{% static 'images/background_image4.webp' %}",
+            "{% static 'images/background_image5.webp' %}"
+        ];
         /* Full-page styling for the portrait effect */
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden; /* Prevent scrolling */
-            background-color: black; /* Default background */
+             
+            body {
+                background: url("{% static 'images/background_image1.webp' %}") no-repeat center center fixed;
+                background-size: cover;
+            }           
+            
         }
 
 
         /* Card styles */
         .card {
-            color: black; /* Font color for text inside cards */
+            color: white; /* Font color for text inside cards */
             border: none; /* Remove borders for a clean look */
-            background-color: #87CEEB; /* Medium light blue background */
+            background-color: rgba(70, 130, 180, 0.6);  /* Medium light blue background */
             border-radius: 15px; /* Rounded corners */
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            
         }
 
         .card-header {
-            background-color: rgba(255, 255, 255, 0.2); /* Slightly transparent white for headers */
-            color: blue; /* Font color for headers */
+            rgba(191, 87, 0, 0.8); /* Slightly transparent white for headers */
+            color: white; /* Font color for headers */
             font-weight: bold;
         }
 
@@ -40,12 +55,12 @@
             text-align: center;
             font-style: italic;
             font-size: 1.5rem;
-            color: red;
+            color: white;
             position: fixed;
-            bottom: 50;
+            bottom: 0;
             left: 0;
             width: 100%;
-            background-color: white; /* Semi-transparent background */
+            background-color: yellow; /* Semi-transparent background */
             padding: 5px 0;
             margin: 0;
             border-top: 2px solid yellow; /* Optional: border for separation */
@@ -53,16 +68,16 @@
 
         /* Portrait container: simulates portrait mode */
         .portrait-container {
-            width: 50vh; /* Height as width (to simulate portrait) */
-            height: 100vw; /* Width as height */
-            transform: rotate(0deg); /* Rotate content for portrait */
+            width: 1080px; /* Height as width (to simulate portrait) */
+            height: 1920px; /* Width as height */
+            transform: rotate(90deg); /* Rotate content for portrait */
             transform-origin: center center;
             position: absolute;
             top: 10%;
             left: 10%;
             right: 10%;
-            bottom: 10%;
-            background-color: black;
+            bottom: 0%;
+            
             color: yellow;
             font-family: Arial, sans-serif;
             display: flex;
@@ -74,7 +89,42 @@
         /* Inner content styling */
         .content {
             width: 100%;
-            height: 80%%;
+            height: 100%%;
+        }     
+        /* Carousel image styling */
+        .carousel-item img {
+            border-radius: 10px; /* Optional rounded corners for images */
+        }
+    
+        /* Carousel title below the image */
+        .carousel-caption-below {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+            color: white; /* White text */
+            padding: 10px;
+            margin-top: -10px; /* Slightly overlap the bottom of the carousel */
+            border-radius: 0 0 10px 10px; /* Rounded corners at the bottom */
+            font-size: 1rem; /* Adjust font size as needed */
+        }
+        .stock-table {
+            color: white; /* Default font color */
+            font-weight: bold; /* Bold font for all text */
+        }
+        
+        /* Header styles */
+        .stock-table th {
+            font-weight: bold;
+            color: white; /* White font for headers */
+            background-color: rgba(0, 0, 0, 0.9); /* Optional: Make header background distinct */
+        }
+        
+        /* Alternating row styles */
+        .stock-table tr:nth-child(odd) td {
+            color: white; /* White font for odd rows */
+        }
+        
+        .stock-table tr:nth-child(even) td {
+            color: red; /* Red font for even rows */
         }
         
     </style>
@@ -82,209 +132,192 @@
 <body>
 
 
-    <!-- Portrait content container -->
-    <div class="portrait-container">
-        <div class="content">
-            <div class="container-fluid mt-4">
-                <!-- Top Section: Current Time and 5-Day Forecast -->
-                <div class="row mb-4">
-                    <!-- Left Column: Current Time -->
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-header">
-                                Current Time
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 id="current-time" class="current-time"></h5>
-                                <p id="current-day"></p>
-                            </div>
-                        </div>
-        
-                        <!-- Zen Saying Section -->
-                        <div class="col-md-12">
+    <body>
+        <!-- Portrait content container -->
+        <div class="portrait-container">
+            <div class="content">
+                <div class="container-fluid mt-4">
+                    <!-- Top Section: Current Time and 5-Day Forecast -->
+                    <div class="row mb-4">
+                        <!-- Left Column: Current Time -->
+                        <div class="col-md-3">
                             <div class="card">
                                 <div class="card-header">
-                                    Current Weather
+                                    Current Time
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 id="current-time" class="current-time"></h5>
+                                    <p id="current-day"></p>
+                                </div>
+                            </div>
+    
+                            <!-- Zen Saying Section -->
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Current Weather
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ current.temp }}°F</h5>
+                                        <p class="card-text">{{ current.weather }}</p>
+                                        <img src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Right Column: 5-Hour Forecast -->
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-header text-center">
+                                    <h2>5-Hour Forecast</h2>
+                                </div>
+                                <div class="card-body d-flex justify-content-around">
+                                    {% for forecast in forecast %}
+                                    <div class="text-center">
+                                        <h5>{{ forecast.datetime }}</h5>
+                                        <img src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
+                                        <p><strong>{{ forecast.temp }}°F</strong></p>
+                                        <p>{{ forecast.weather }}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Shared Row: Current Weather, Google Calendar Events, and NY Times Headlines -->
+                    <div class="row mb-4">
+                        <!-- YouTube Shorts Section -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2>YouTube Shorts</h2>
                                 </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ current.temp }}°F</h5>
-                                    <p class="card-text">{{ current.weather }}</p>
-                                    <img src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
+                                    {% if youtube_shorts %}
+                                    <div class="row">
+                                        {% for short in youtube_shorts %}
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100">
+                                                <a href="{{ short.video_url }}" target="_blank">
+                                                    <img src="{{ short.thumbnail_url }}" class="card-img-top" alt="{{ short.title }}">
+                                                </a>
+                                                <div class="card-body">
+                                                    <h5 class="card-title">{{ short.title }}</h5>
+                                                    <p class="card-text">{{ short.description|truncatewords:15 }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p>No YouTube Shorts available at the moment.</p>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
-        
-        
-        
-                    </div>
-        
-                    <!-- Right Column: 5-Hour Forecast -->
-                    <div class="col-md-9">
-                        <div class="card">
-                            <div class="card-header text-center">
-                                <h2>5-Hour Forecast</h2>
-                            </div>
-                            <div class="card-body d-flex justify-content-around">
-                                {% for forecast in forecast %}
-                                <div class="text-center">
-                                    <h5>{{ forecast.datetime }}</h5>
-                                    <img src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
-                                    <p><strong>{{ forecast.temp }}°F</strong></p>
-                                    <p>{{ forecast.weather }}</p>
+                    
+                        <!-- Google Calendar Events Section -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Upcoming Events
                                 </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        
-              <!-- Shared Row: Current Weather, Google Calendar Events, and NY Times Headlines -->
-              <div class="container-fluid mt-4">
-                <!-- Row 1: Current Weather and Calendar Events -->
-                <div class="row mb-4">
-                    <!-- Current Weather -->
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                Current Weather
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ current.temp }}°F</h5>
-                                <p class="card-text">{{ current.weather }}</p>
-                                <img src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
-                            </div>
-                        </div>
-                    </div>
-            
-                    <!-- Google Calendar Events -->
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                Upcoming Events
-                            </div>
-                            <div class="card-body">
-                                {% if events %}
+                                <div class="card-body">
+                                    {% if events %}
                                     <ul class="list-group">
                                         {% for event in events %}
-                                            <li class="list-group-item">
-                                                <div class="d-flex justify-content-between">
-                                                    <div><strong>Date:</strong> {{ event.date }}</div>
-                                                    <div><strong>Date:</strong> {{ event.date }}</div>
-                                                    {% if event.time %}
-                                                        <div><strong>Time:</strong> {{ event.time }}</div>
-                                                    {% else %}
-                                                        <div class="text-muted"><strong>Time:</strong> N/A</div>
-                                                    {% endif %}
-                                                </div>
-                                                <div><strong>Event:</strong> {{ event.summary }}</div>
-                                            </li>
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between">
+                                                <div><strong>Date:</strong> {{ event.date }}</div>
+                                                <div><strong>Time:</strong> {{ event.time|default:"N/A" }}</div>
+                                            </div>
+                                            <div><strong>Event:</strong> {{ event.summary }}</div>
+                                        </li>
                                         {% endfor %}
                                     </ul>
-                                {% else %}
+                                    {% else %}
                                     <p class="text-muted">No upcoming events.</p>
-                                {% endif %}
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-        
-                 <!-- Row 2: Stocks and NY Times Headlines -->
-                 <div class="row mb-4">
-                    <!-- Stock Market -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header text-white bg-primary">
-                                <h2 class="card-title mb-0">Stock Market</h2>
-                            </div>
-                            <div class="card-body">
-                                {% if stocks %}
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-hover">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th>Symbol</th>
-                                                    <th>Price</th>
-                                                    <th>52WK HIGH</th>
-                                                    <th>52WK LOW</th>
-                                                    <th>CHANGE</th>
-                                                    
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for stock in stocks %}
+                    
+                    
+    
+                    <div class="row">
+                        <!-- Stock Market Column -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h2 class="card-title mb-0">Stock Market</h2>
+                                </div>
+                                <div class="card-body">
+                                    {% if stocks %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover stock-table">
+                                                <thead class="table-dark">
                                                     <tr>
-                                                        <td>{{ stock.symbol }}</td>
-                                                        <td>
-                                                            {% if stock.price %}
-                                                                ${{ stock.price }}
-                                                            {% else %}
-                                                                <span class="text-muted">N/A</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            
-                                                                ${{ stock.fifty_two_week_high }}
-                                                            
-                                                                <span class="text-muted">N/A</span>
-                                                            
-                                                        </td>
-                                                        <td>
-                                                           
-                                                                ${{ stock.fifty_two_week_low }}
-          
-                                                        </td>
-                                                    </td>
-                                                    <td>
-                                                       
-                                                            ${{stock.fifty_two_week_change}}
-        
-                                                    </td>   
-        
+                                                        <th>Symbol</th>
+                                                        <th>Price</th>
+                                                        <th>52WK HIGH</th>
+                                                        <th>52WK LOW</th>
+                                                        <th>CHANGE</th>
                                                     </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody>
+                                                    {% for stock in stocks %}
+                                                        <tr>
+                                                            <td>{{ stock.symbol }}</td>
+                                                            <td>{{ stock.price }}</td>
+                                                            <td>{{ stock.fifty_two_week_high }}</td>
+                                                            <td>{{ stock.fifty_two_week_low }}</td>
+                                                            <td>{{ stock.fifty_two_week_change }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-white">No stock data available at the moment.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                    
+                        <!-- Sports Headlines Column -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h2 class="card-title mb-0">Sports Headlines</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div id="sportsHeadlinesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+                                        <div class="carousel-inner">
+                                            {% for article in headlines %}
+                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                    <img src="{{ article.urlToImage|default:'https://tse1.mm.bing.net/th?id=OIP.hf0sUX28l1fdqdBYKvmX3gHaFj&pid=Api&P=0&h=180' }}" 
+                                                         class="d-block w-100" 
+                                                         alt="Sports Headline Image">
+                                                    <div class="carousel-caption-below">
+                                                        <p>{{ article.title }}</p>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
                                     </div>
-                                {% else %}
-                                    <p class="text-center text-muted">No stock data available at the moment.</p>
-                                {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
-        
-                <!-- NY Times Headlines -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            NY Times Headlines
-                        </div>
-                        <div class="card-body">
-                            {% if nytimes_headlines %}
-                                <ul class="list-group">
-                                    {% for article in nytimes_headlines %}
-                                        <li class="list-group-item">
-                                            <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="text-muted">No headlines available.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card zen-card">
-                <div class="card-body">
-                    <p>'{{ zen_saying }}'</p>
-                </div>
-            </div>
-        </div>
-        
-        
-        </div>
-        </div>
-    </div>
+                    
+
+    </body>
+</html>
+    
 
     <!-- JavaScript for Time -->
     <script>
@@ -298,29 +331,32 @@
                 day: 'numeric',
             });
         }
-
+    
         setInterval(updateTime, 1000);
-        updateTime();
+        updateTime(); // This is correctly closed, no extra brace needed here
     </script>
 
+<script>
 
+    // Refresh the page every 5 minutes (300,000 milliseconds)
+    function autoRefresh() {
+        setTimeout(function() {
+            window.location.reload();
+        }, 300000); // 5 minutes
+    }
 
+    // Start updating the time every second
+    setInterval(updateTime, 1000);
+    updateTime(); // Call once immediately to set the initial time
 
-</body>
-</html>
+    // Start the auto-refresh timer
+    autoRefresh();
 
+    </script>
 
+<script>
+        const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        document.body.style.background = `url(${randomImage}) no-repeat center center fixed`;
+        document.body.style.backgroundSize = "cover";
+    </script>

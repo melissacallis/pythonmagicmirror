@@ -13,8 +13,6 @@ import random
 import sys
 import yfinance as yf
 
-
-
 # Google Calendar API Scope
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
@@ -65,6 +63,8 @@ def home(request):
 
     # Fetch Google Calendar events
     calendar_events = fetch_calendar_events()
+    
+    zen_saying = get_zen_saying()
 
     # Fetch NY Times headlines
     nytimes_headlines = fetch_nytimes_headlines()
@@ -77,13 +77,16 @@ def home(request):
         data = get_yahoo_stock_data(ticker)
         if data:
             stock_data.append(data)
-    print(f"Stock data passed to template: {stock_data}")
+    #print(f"Stock data passed to template: {stock_data}")
 
-    # Fetch stock data
+    # Fetch sports-headline data
     #stock_data = [get_stock_data(ticker) for ticker in stock_tickers]
 
-    
+    headlines = fetch_sports_headlines()
     # Pass data to the template
+    # Fetch YouTube Shorts
+    youtube_shorts = fetch_youtube_shorts()
+
     context = {
         'current': current_weather,
         'forecast': forecast_list,
@@ -91,15 +94,61 @@ def home(request):
         'nytimes_headlines': nytimes_headlines,
         'zen_saying': get_zen_saying(),
         "stocks": stock_data,
+        "headlines": headlines,
+        "youtube_shorts": youtube_shorts,
         }  # Add NY Times headlines to the
     
     print(f"API_KEY_WEATHER: {api_key}")
+    print(headlines)
 
     
     return render(request, 'mirror/home.html', context)
 
+def get_zen_saying():
+    sayings = [
+"Feelings are just visitors. Let them come and go.",
+"Don’t fight with your thoughts; just observe them and they will dissolve.",
+"The mind loves to create problems, but it also loves to invent solutions.",
+"Be the sky, not the clouds.",
+"Happiness is your nature. It is not wrong to desire it. What is wrong is seeking it outside when it is inside.",
+    ]
+    return random.choice(sayings)
 
-
+def fetch_sports_headlines():
+    SPORTS_API = os.getenv("SPORTS_API_KEY")  # Make sure the API key is set in your environment variables
+    API_URL = 'https://newsapi.org/v2/top-headlines'
+    
+    # Get the current date in ISO 8601 format (YYYY-MM-DD)
+    current_date = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # Parameters to fetch sports news
+    params = {
+        'category': 'sports',
+        'apiKey': SPORTS_API,
+        'language': 'en',
+        'from': current_date,
+        'sortBy': 'publishedAt',
+        'pageSize': 10
+    }
+    
+    try:
+        # Make the API request
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx and 5xx)
+        articles = response.json().get('articles', [])
+        
+        # Debugging: Print fetched articles
+        print("Fetched Sports Headlines:")
+        for article in articles:
+            print(f"Title: {article.get('title')}")
+            print(f"Image: {article.get('urlToImage')}")
+            print(f"URL: {article.get('url')}\n")
+        
+        return articles
+    except Exception as e:
+        print(f"Error fetching sports headlines: {e}")
+        return []
+    
 def get_yahoo_stock_data(ticker):
     """
     Fetch and print all raw stock data from the Yahoo Finance API for debugging.
@@ -137,36 +186,6 @@ def fetch_full_stock_data_raw(ticker):
     print(f"Methods available: {dir(stock)}")
 
    
-
-
-
-
-def get_zen_saying():
-    sayings = [
-"Feelings are just visitors. Let them come and go.",
-"Don’t fight with your thoughts; just observe them and they will dissolve.",
-"The mind loves to create problems, but it also loves to invent solutions.",
-"Be the sky, not the clouds.",
-"Happiness is your nature. It is not wrong to desire it. What is wrong is seeking it outside when it is inside.",
-    ]
-    return random.choice(sayings)
-    
-     
-
-
-# Example usage
-if __name__ == '__main__':
-    events = get_calendar_events()
-    if not events:
-        print('No upcoming events found.')
-    else:
-        for event in events:
-            # Get the start time and summary
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            summary = event.get('summary', 'No Title')
-            print(f"{start}: {summary}")
-
-
 def fetch_weather():
     """
     Fetch current weather and forecast data from OpenWeatherMap API.
@@ -208,42 +227,65 @@ def fetch_weather():
 
     return current_weather, forecast_list
 
-
-
 def format_event_datetime(event_datetime):
-    """Split event_datetime into date and time."""
+    """
+    Safely splits event_datetime into date and time, handling potential timezone offsets.
+    """
     try:
-        print(f"Raw event_datetime input: {event_datetime}")  # Debugging input
-        if 'T' in event_datetime:  # Check if it contains both date and time
+        if 'T' in event_datetime:  # If `dateTime` includes a time part
             date_part, time_part = event_datetime.split('T')
-            time_part = time_part.split('-')[0]  # Remove timezone info if present
-            return date_part, time_part  # Return date and time separately
-        else:
-            return event_datetime, None  # Return only date if no time is present
+            time_part = time_part.split('+')[0].split('-')[0]  # Remove timezone offset if present
+            return date_part, time_part
+        else:  # If only `date` is present
+            return event_datetime, None  # Return only date
     except Exception as e:
         print(f"Error formatting datetime: {e}")
         return "Invalid Date", "Invalid Time"
 
 
 def fetch_calendar_events():
-    # Mocked Google Calendar data for demonstration
-    events = [
-        {"start": {"dateTime": "2024-11-29T19:00:00-06:00", "timeZone": "America/Chicago"}, "summary": "Time to take medicine"},
-        {"start": {"date": "2024-12-01"}, "summary": "Doctor's appointment"},
-    ]
+    """
+    Fetch upcoming Google Calendar events and format their date and time fields.
+    """
+    # Replace the mock data with the actual API call as shown below:
+    try:
+        creds = None
+        if os.path.exists('token.json'):
+            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+                creds = flow.run_local_server(port=0)
+            
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
+        
+        service = build('calendar', 'v3', credentials=creds)
+        now = datetime.utcnow().isoformat() + 'Z'
+        events_result = service.events().list(calendarId='primary', timeMin=now,
+                                              maxResults=10, singleEvents=True,
+                                              orderBy='startTime').execute()
+        events = events_result.get('items', [])
+        print(f"Raw events: {events}")
+        
+        formatted_events = []
+        for event in events:
+            event_datetime = event['start'].get('dateTime', event['start'].get('date', ''))
+            date_part, time_part = format_event_datetime(event_datetime)
+            formatted_events.append({
+                "date": date_part,
+                "time": time_part,
+                "summary": event.get("summary", "No Title"),
+            })
+            
+        return formatted_events
 
-    formatted_events = []
-    for event in events:
-        event_datetime = event["start"].get("dateTime", event["start"].get("date", ""))
-        date_part, time_part = format_event_datetime(event_datetime)  # Split into date and time
-        formatted_events.append({
-            "date": date_part,
-            "time": time_part,
-            "summary": event["summary"],
-        })
-
-    print(f"Formatted events: {formatted_events}")  # Debugging formatted output
-    return formatted_events
+    except Exception as e:
+        print(f"Error fetching calendar events: {e}")
+        return []
 
     
 def fetch_nytimes_headlines():
@@ -274,4 +316,72 @@ def fetch_nytimes_headlines():
     return []
 
 
+import os
+from googleapiclient.discovery import build
+import isodate
 
+def fetch_youtube_shorts():
+    """
+    Fetch the top two sports-related YouTube Shorts.
+    """
+    
+    API_KEY = os.getenv("YOUTUBE_API_KEY")
+
+    if not API_KEY:
+        print("YouTube API key not found in environment variables.")
+        return []
+
+    # Build the YouTube API client
+    youtube = build("youtube", "v3", developerKey=API_KEY)
+
+    # Define search parameters
+    search_params = {
+        "part": "snippet",
+        "maxResults": 10,  # Fetch more results to filter later
+        "q": "sports #shorts",  # Include "sports" keyword and Shorts hashtag
+        "type": "video",
+        "videoDuration": "any",  # Fetch videos of any length
+        "order": "viewCount",    # Order by view count
+        "safeSearch": "moderate" # Safe search filter
+    }
+
+    try:
+        # Fetch search results
+        response = youtube.search().list(**search_params).execute()
+        video_ids = [item["id"]["videoId"] for item in response.get("items", [])]
+
+        # Fetch video details for duration and filtering
+        videos_response = youtube.videos().list(
+            part="snippet,contentDetails",
+            id=",".join(video_ids)
+        ).execute()
+
+        shorts = []
+        for video in videos_response.get("items", []):
+            duration = video["contentDetails"]["duration"]
+            snippet = video["snippet"]
+            duration_seconds = isodate.parse_duration(duration).total_seconds()
+
+            # Filter for videos less than or equal to 60 seconds
+            if duration_seconds <= 60:
+                shorts.append({
+                    "video_id": video["id"],
+                    "title": snippet["title"],
+                    "description": snippet["description"],
+                    "thumbnail_url": snippet["thumbnails"]["high"]["url"],
+                    "video_url": f"https://www.youtube.com/watch?v={video['id']}"
+                })
+
+            # Stop when we have 2 Shorts
+            if len(shorts) == 2:
+                break
+
+        return shorts
+
+    except Exception as e:
+        print(f"Error fetching YouTube Shorts: {e}")
+        return []
+
+    except Exception as e:
+        print(f"Error fetching YouTube Shorts: {e}")
+        return []
