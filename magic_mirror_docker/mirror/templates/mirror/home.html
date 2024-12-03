@@ -12,25 +12,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
 
-const backgroundImages = [
-            "{% static 'images/background_image1.webp' %}",
-            "{% static 'images/background_image2.webp' %}",
-            "{% static 'images/background_image3.webp' %}",
-            "{% static 'images/background_image4.webp' %}",
-            "{% static 'images/background_image5.webp' %}"
-        ];
         /* Full-page styling for the portrait effect */
         html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-             
-            body {
-                background: url("{% static 'images/background_image1.webp' %}") no-repeat center center fixed;
-                background-size: cover;
-            }           
-            
-        }
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-image: url("{% static 'mirror/images/image_background5.webp' %}");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
 
 
         /* Card styles */
@@ -70,7 +61,7 @@ const backgroundImages = [
         .portrait-container {
             width: 1080px; /* Height as width (to simulate portrait) */
             height: 1920px; /* Width as height */
-            transform: rotate(90deg); /* Rotate content for portrait */
+            transform: rotate(-90deg); /* Rotate content for portrait */
             transform-origin: center center;
             position: absolute;
             top: 10%;
@@ -360,3 +351,12 @@ const backgroundImages = [
         document.body.style.background = `url(${randomImage}) no-repeat center center fixed`;
         document.body.style.backgroundSize = "cover";
     </script>
+<script>
+    const backgroundImages = [
+        "{% static 'images/background_image1.webp' %}",
+        "{% static 'images/background_image2.webp' %}",
+        "{% static 'images/background_image3.webp' %}",
+        "{% static 'images/background_image4.webp' %}",
+        "{% static 'images/background_image5.webp' %}"
+    ];
+</script>
