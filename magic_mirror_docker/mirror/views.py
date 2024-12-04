@@ -13,6 +13,8 @@ import random
 import sys
 import isodate
 import yfinance as yf
+from arlo import Arlo
+
 
 # Google Calendar API Scope
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -69,6 +71,7 @@ def home(request):
 
     # Fetch NY Times headlines
     nytimes_headlines = fetch_nytimes_headlines()
+    
      # Default stock tickers
     stock_tickers = ["AAPL", "GOOGL", "MSFT", "MMLP"]
     
@@ -87,7 +90,8 @@ def home(request):
     # Pass data to the template
     # Fetch YouTube Shorts
     youtube_shorts = fetch_youtube_shorts()
-
+    
+        
     context = {
         'current': current_weather,
         'forecast': forecast_list,
@@ -97,6 +101,7 @@ def home(request):
         "stocks": stock_data,
         "headlines": headlines,
         "youtube_shorts": youtube_shorts,
+        
         }  # Add NY Times headlines to the
     
     print(f"API_KEY_WEATHER: {api_key}")
@@ -292,29 +297,49 @@ def fetch_calendar_events():
 def fetch_nytimes_headlines():
     """
     Fetch the latest NY Times headlines using the Top Stories API.
-        """
-    NYTIMES_API_KEY = os.getenv("NYTIMES_API_KEY")  # Replace with your actual API key
+    """
+    NYTIMES_API_KEY = os.getenv("NYTIMES_API_KEY")
     NYTIMES_API_URL = "https://api.nytimes.com/svc/topstories/v2/home.json"
-        
+
     try:
-        # Send a GET request to the NY Times Top Stories API
         response = requests.get(NYTIMES_API_URL, params={"api-key": NYTIMES_API_KEY})
-        response.raise_for_status()  # Raise an error for HTTP response codes 4xx/5xx
+        response.raise_for_status()
         data = response.json()
-            
-            # Extract and return the top 10 headlines
-        return [
-            {"title": article["title"], "url": article["url"]}
-            for article in data.get("results", [])[:10]
-        ]
-    except requests.exceptions.RequestException as req_err:
-        print(f"Request error fetching NY Times headlines: {req_err}")
-    except KeyError as key_err:
-        print(f"Key error processing NY Times data: {key_err}")
+
+        # Extract and handle multimedia data
+        headlines = []
+        for article in data.get("results", [])[:10]:
+            # Check if multimedia exists
+            if article.get("multimedia"):
+                # Look for 'superJumbo' format
+                image_url = next(
+                    (media["url"] for media in article["multimedia"] if media["format"] == "Super Jumbo"),
+                    None
+                )
+                # If 'superJumbo' not found, fallback to first image
+                if not image_url:
+                    image_url = article["multimedia"][0]["url"]
+            else:
+                # Use a placeholder if no multimedia is available
+                image_url = "https://via.placeholder.com/800x400?text=No+Image+Available"
+
+            # Append the processed headline data
+            headlines.append({
+                "title": article.get("title", "No Title"),
+                "abstract": article.get("abstract", ""),
+                "url": article.get("url", "#"),
+                "image_url": image_url,
+            })
+
+        return headlines
     except Exception as e:
-        print(f"Unexpected error fetching NY Times headlines: {e}")
-        
-    return []
+        print(f"Error fetching NY Times headlines: {e}")
+        return []
+
+       
+
+
+
 
 
 def fetch_youtube_shorts():
@@ -382,3 +407,8 @@ def fetch_youtube_shorts():
     except Exception as e:
         print(f"Error fetching YouTube Shorts: {e}")
         return []
+
+# Arlo credentials (store securely in environment variables)
+ARLO_USERNAME = os.getenv("ARLO_USERNAME")  # Replace with your Arlo username
+ARLO_PASSWORD = os.getenv("ARLO_PASSWORD")  # Replace with your Arlo password
+

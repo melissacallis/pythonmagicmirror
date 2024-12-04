@@ -110,6 +110,54 @@ background-attachment: fixed;
         color: red; /* Red font for even rows */
     }
     
+    .carousel-inner {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Only one item is visible at a time */
+    .carousel-item {
+        display: none; /* Hide all items by default */
+        position: relative;
+        transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+        opacity: 0; /* Start with zero opacity */
+    }
+    
+    /* Active item is visible and transitions smoothly */
+    .carousel-item.active {
+        display: flex; /* Flex to center content */
+        justify-content: center;
+        align-items: center;
+        opacity: 1; /* Fully visible */
+    }
+    
+    /* Compact container for headlines */
+    .headline-container {
+        height: 80px; /* Adjust height */
+    }
+    
+    /* Improve headline text appearance */
+    .headline-text {
+        font-size: 2.5rem; /* Larger font for readability */
+        font-family: 'Verdana', sans-serif; /* Clean and modern font */
+        font-weight: bold; /* Bold text */
+        color: #ffffff; /* White text color */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Shadow for better contrast */
+        text-align: center;
+        margin: 0;
+    }
+
+    /* Time Text Styling */
+.time-text {
+    font-size: 3.75rem; /* Match the font size of headlines */
+    font-family: 'Verdana', sans-serif; /* Use the same font */
+    font-weight: bold; /* Bold text for emphasis */
+    color: #87CEEB; /* Black text color */
+    text-align: center; /* Center the text in the card */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Add a subtle shadow */
+    margin: 0; /* Remove unnecessary margins */
+}
+    }
 </style>
 </head>
 <body>
@@ -117,116 +165,189 @@ background-attachment: fixed;
 
     <body>
         <!-- Portrait content container -->
-        <div class="portrait-container">
-            <div class="content">
-                <div class="container-fluid mt-4">
-                    <!-- Top Section: Current Time and 5-Day Forecast -->
-                    <div class="row mb-4">
-                        <!-- Left Column: Current Time -->
-                        <div class="col-md-3">
+       
+        <div class="content">
+            <div class="container-fluid mt-4">
+                <!-- Top Section: Current Time and 5-Day Forecast -->
+                <div class="row mb-4">
+                    <!-- Left Column: Current Time -->
+                    <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <p id="current-day"></p>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 id="current-time" class="current-time time-text"></h5>
+                            <p id="current-day"></p>
+                        </div>
+                    </div>
+        
+                        <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    Current Time
+                                    Current Weather
                                 </div>
-                                <div class="card-body text-center">
-                                    <h5 id="current-time" class="current-time"></h5>
-                                    <p id="current-day"></p>
-                                </div>
-                            </div>
-    
-                            <!-- Zen Saying Section -->
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        Current Weather
-                                    </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ current.temp }}°F</h5>
-                                        <p class="card-text">{{ current.weather }}</p>
-                                        <img src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-    
-                        <!-- Right Column: 5-Hour Forecast -->
-                        <div class="col-md-9">
-                            <div class="card">
-                                <div class="card-header text-center">
-                                    <h2>5-Hour Forecast</h2>
-                                </div>
-                                <div class="card-body d-flex justify-content-around">
-                                    {% for forecast in forecast %}
-                                    <div class="text-center">
-                                        <h5>{{ forecast.datetime }}</h5>
-                                        <img src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
-                                        <p><strong>{{ forecast.temp }}°F</strong></p>
-                                        <p>{{ forecast.weather }}</p>
-                                    </div>
-                                    {% endfor %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ current.temp }}°F</h5>
+                                    <p class="card-text">{{ current.weather }}</p>
+                                    <img src="http://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="Weather icon">
                                 </div>
                             </div>
                         </div>
                     </div>
-    
-                    <!-- Shared Row: Current Weather, Google Calendar Events, and NY Times Headlines -->
-                    <div class="row mb-4">
-                        <!-- YouTube Shorts Section -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h2>YouTube Shorts</h2>
+        
+                    <!-- Right Column: 5-Hour Forecast -->
+                    <div class="col-md-9">
+                        <div class="card">
+                            <div class="card-header text-center">
+                                <h2>5-Hour Forecast</h2>
+                            </div>
+                            <div class="card-body d-flex justify-content-around">
+                                {% for forecast in forecast %}
+                                <div class="text-center">
+                                    <h5>{{ forecast.datetime }}</h5>
+                                    <img src="http://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="Weather icon">
+                                    <p><strong>{{ forecast.temp }}°F</strong></p>
+                                    <p>{{ forecast.weather }}</p>
                                 </div>
-                                <div class="card-body">
-                                    {% if youtube_shorts %}
-                                    <div class="row">
-                                        {% for short in youtube_shorts %}
-                                        <div class="col-md-6 mb-4">
-                                            <div class="card h-100">
-                                                <a href="{{ short.video_url }}" target="_blank">
-                                                    <img src="{{ short.thumbnail_url }}" class="card-img-top" alt="{{ short.title }}">
-                                                </a>
-                                                <div class="card-body">
-                                                    <h5 class="card-title">{{ short.title }}</h5>
-                                                    <p class="card-text">{{ short.description|truncatewords:15 }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                    {% else %}
-                                    <p>No YouTube Shorts available at the moment.</p>
-                                    {% endif %}
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
-                    
-                        <!-- Google Calendar Events Section -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    Upcoming Events
-                                </div>
-                                <div class="card-body">
-                                    {% if events %}
-                                    <ul class="list-group">
-                                        {% for event in events %}
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-between">
-                                                <div><strong>Date:</strong> {{ event.date }}</div>
-                                                <div><strong>Time:</strong> {{ event.time|default:"N/A" }}</div>
-                                            </div>
-                                            <div><strong>Event:</strong> {{ event.summary }}</div>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% else %}
-                                    <p class="text-muted">No upcoming events.</p>
-                                    {% endif %}
-                                </div>
+        
+                       <!-- NY Times Headlines Carousel -->
+<div class="card mt-4">
+    <div class="card-header text-center bg-dark text-white">
+        <h2>Latest Headlines</h2>
+    </div>
+    <div class="card-body p-0">
+        <div id="headlinesCarousel" class="carousel slide bg-black text-white" data-bs-ride="carousel" data-bs-interval="8000">
+            <div class="carousel-inner">
+                {% for headline in nytimes_headlines %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <div class="d-flex justify-content-center align-items-center headline-container">
+                        <p class="headline-text m-0">{{ headline.title }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#headlinesCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#headlinesCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    
+<!-- Shared Row: YouTube Shorts and Google Calendar Events -->
+<div class="row mb-4">
+    <!-- Left Column: YouTube Shorts and Arlo Recordings -->
+    <div class="col-md-6">
+        <!-- YouTube Shorts Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>YouTube Shorts</h2>
+            </div>
+            <div class="card-body">
+                {% if youtube_shorts %}
+                <div class="row">
+                    {% for short in youtube_shorts %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <a href="{{ short.video_url }}" target="_blank">
+                                <img src="{{ short.thumbnail_url }}" class="card-img-top" alt="{{ short.title }}">
+                            </a>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ short.title }}</h5>
+                                <p class="card-text">{{ short.description|truncatewords:15 }}</p>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No YouTube Shorts available at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Arlo Recordings Section -->
+        <div id="nytimesCarousel" class="carousel slide mb-4" data-bs-ride="carousel" data-bs-interval="5000">
+            <!-- Indicators -->
+            <div class="carousel-indicators">
+                {% for headline in nytimes_headlines %}
+                <button type="button" data-bs-target="#nytimesCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                        class="{% if forloop.first %}active{% endif %}" aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+        
+            <!-- Carousel Inner -->
+            <div class="carousel-inner">
+                {% for headline in nytimes_headlines %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <!-- Image from the article -->
+                    <img src="{{ headline.multimedia.0.url }}" class="d-block w-100" alt="{{ headline.title }}" style="max-height: 400px; object-fit: cover;">
+                    <div class="carousel-caption d-none d-md-block">
+                        <!-- Article headline -->
+                        <h5>{{ headline.title }}</h5>
+                        <p>{{ headline.abstract }}</p>
+                        <a href="{{ headline.url }}" class="btn btn-primary" target="_blank">Read More</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        
+            <!-- Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#nytimesCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#nytimesCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        
+    </div>
+
+    <!-- Right Column: Google Calendar Events -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Upcoming Events
+            </div>
+            <div class="card-body">
+                {% if events %}
+                <ul class="list-group">
+                    {% for event in events %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div><strong>Date:</strong> {{ event.date }}</div>
+                            <div><strong>Time:</strong> {{ event.time|default:"N/A" }}</div>
+                        </div>
+                        <div><strong>Event:</strong> {{ event.summary }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No upcoming events.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
                     
                     
     
