@@ -11,6 +11,7 @@ from django.shortcuts import redirect, render
 import requests
 import random
 import sys
+import isodate
 import yfinance as yf
 
 # Google Calendar API Scope
@@ -315,10 +316,6 @@ def fetch_nytimes_headlines():
         
     return []
 
-
-import os
-from googleapiclient.discovery import build
-import isodate
 
 def fetch_youtube_shorts():
     """
