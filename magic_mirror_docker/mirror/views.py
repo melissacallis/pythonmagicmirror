@@ -13,7 +13,7 @@ import random
 import sys
 import isodate
 import yfinance as yf
-from arlo import Arlo
+
 
 
 # Google Calendar API Scope
