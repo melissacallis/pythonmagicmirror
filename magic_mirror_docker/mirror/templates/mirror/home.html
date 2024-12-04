@@ -11,108 +11,106 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
    
-   
-    <style>
-
-        /* Full-page styling for the portrait effect */
-        html, body {
-    margin: 0;
-    padding: 20;
-    height: 100%;
-    background-image: url("{% static 'mirror/images/image_background5.webp' %}");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    <style> 
+    /* Full-page styling for the portrait effect */
+    html, body {
+margin: 0;
+padding: 20;
+height: 100%;
+background-image: url("{% static 'mirror/images/image_background5.webp' %}");
+background-size: cover;
+background-repeat: no-repeat;
+background-attachment: fixed;
 }
 
 
-        /* Card styles */
-        .card {
-            color: white; /* Font color for text inside cards */
-            border: none; /* Remove borders for a clean look */
-            background-color: rgba(70, 130, 180, 0.6);  /* Medium light blue background */
-            border-radius: 15px; /* Rounded corners */
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-            margin: 20px auto;
-            
+    /* Card styles */
+    .card {
+        color: white; /* Font color for text inside cards */
+        border: none; /* Remove borders for a clean look */
+        background-color: black;  /* Medium light blue background */
+        border-radius: 15px; /* Rounded corners */
+        padding: 10px; /* Reduce padding */
+        margin: 10px auto; /* Reduce margin */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        margin: 20px auto;
+        
+    }
+        
+        /* Align left and right cards */
+        .card:nth-child(odd) {
+            justify-self: start; /* Align left cards */
         }
-
-        .card-header {
-            rgba(191, 87, 0, 0.8); /* Slightly transparent white for headers */
-            color: white; /* Font color for headers */
-            font-weight: bold;
+        
+        .card:nth-child(even) {
+            justify-self: end; /* Align right cards */
         }
-
-        .zen-card {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-        }
-
-        /* Portrait container: simulates portrait mode */
+        
+        /* Optional: Debugging borders */
         .portrait-container {
-            width: 50vw; /* 90% of the viewport width */
-            height: 40vh; /* Full height of the viewport */
-            transform: rotate(-90deg); /* Rotate content for portrait */
-            transform-origin: center center;
-            overflow: visible; /* Ensure content doesn’t get clipped */
-            position: fixed;
-            top: 10%;
-            left: 10%;
-            right: 10%;
-            bottom: 0%;
-            
-            color: yellow;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            border: 2px solid red; /* Debugging border for container */
+        }
+        
+        .card {
+            border: 2px solid blue; /* Debugging border for cards */
         }
 
-        /* Inner content styling */
-        .content {
-            width: 100%;
-            height: 100%%;
-        }     
-        /* Carousel image styling */
-        .carousel-item img {
-            border-radius: 10px; /* Optional rounded corners for images */
-        }
+    .card-header {
+        rgba(191, 87, 0, 0.8); /* Slightly transparent white for headers */
+        color: white; /* Font color for headers */
+        font-weight: bold;
+    }
+
+    .zen-card {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+    }
+
+
+
+    /* Inner content styling */
+    .content {
+        width: 100%;
+        height: 100%%;
+    }     
+    /* Carousel image styling */
+    .carousel-item img {
+        border-radius: 10px; /* Optional rounded corners for images */
+    }
+
+    /* Carousel title below the image */
+    .carousel-caption-below {
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+        color: white; /* White text */
+        padding: 10px;
+        margin-top: -10px; /* Slightly overlap the bottom of the carousel */
+        border-radius: 0 0 10px 10px; /* Rounded corners at the bottom */
+        font-size: 1rem; /* Adjust font size as needed */
+    }
+    .stock-table {
+        color: white; /* Default font color */
+        font-weight: bold; /* Bold font for all text */
+    }
     
-        /* Carousel title below the image */
-        .carousel-caption-below {
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
-            color: white; /* White text */
-            padding: 10px;
-            margin-top: -10px; /* Slightly overlap the bottom of the carousel */
-            border-radius: 0 0 10px 10px; /* Rounded corners at the bottom */
-            font-size: 1rem; /* Adjust font size as needed */
-        }
-        .stock-table {
-            color: white; /* Default font color */
-            font-weight: bold; /* Bold font for all text */
-        }
-        
-        /* Header styles */
-        .stock-table th {
-            font-weight: bold;
-            color: white; /* White font for headers */
-            background-color: rgba(0, 0, 0, 0.9); /* Optional: Make header background distinct */
-        }
-        
-        /* Alternating row styles */
-        .stock-table tr:nth-child(odd) td {
-            color: white; /* White font for odd rows */
-        }
-        
-        .stock-table tr:nth-child(even) td {
-            color: red; /* Red font for even rows */
-        }
-        
-    </style>
+    /* Header styles */
+    .stock-table th {
+        font-weight: bold;
+        color: white; /* White font for headers */
+        background-color: rgba(0, 0, 0, 0.9); /* Optional: Make header background distinct */
+    }
+    
+    /* Alternating row styles */
+    .stock-table tr:nth-child(odd) td {
+        color: white; /* White font for odd rows */
+    }
+    
+    .stock-table tr:nth-child(even) td {
+        color: red; /* Red font for even rows */
+    }
+    
+</style>
 </head>
 <body>
 
