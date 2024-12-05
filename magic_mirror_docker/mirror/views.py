@@ -1,6 +1,5 @@
 
 import requests
-
 from datetime import datetime
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -13,12 +12,11 @@ import random
 import sys
 import isodate
 import yfinance as yf
-
 import http.client
 import json
 
-import http.client
-import json
+
+
 
 
 # Google Calendar API Scope
@@ -126,8 +124,6 @@ def get_zen_saying():
     ]
     return random.choice(sayings)
 
-import http.client
-import json
 
 def fetch_sports_headlines():
     """Fetch sports headlines from the NFL API."""
