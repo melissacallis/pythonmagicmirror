@@ -14,6 +14,11 @@ import sys
 import isodate
 import yfinance as yf
 
+import http.client
+import json
+
+import http.client
+import json
 
 
 # Google Calendar API Scope
@@ -86,7 +91,8 @@ def home(request):
     # Fetch sports-headline data
     #stock_data = [get_stock_data(ticker) for ticker in stock_tickers]
 
-    headlines = fetch_sports_headlines()
+    sports_headlines= fetch_sports_headlines()
+    
     # Pass data to the template
     # Fetch YouTube Shorts
     youtube_shorts = fetch_youtube_shorts()
@@ -99,13 +105,13 @@ def home(request):
         'nytimes_headlines': nytimes_headlines,
         'zen_saying': get_zen_saying(),
         "stocks": stock_data,
-        "headlines": headlines,
         "youtube_shorts": youtube_shorts,
+        'sports_headlines': sports_headlines,
         
         }  # Add NY Times headlines to the
     
-    print(f"API_KEY_WEATHER: {api_key}")
-    print(headlines)
+   
+    
 
     
     return render(request, 'mirror/home.html', context)
@@ -120,40 +126,62 @@ def get_zen_saying():
     ]
     return random.choice(sayings)
 
+import http.client
+import json
+
 def fetch_sports_headlines():
-    SPORTS_API = os.getenv("SPORTS_API_KEY")  # Make sure the API key is set in your environment variables
-    API_URL = 'https://newsapi.org/v2/top-headlines'
-    
-    # Get the current date in ISO 8601 format (YYYY-MM-DD)
-    current_date = datetime.utcnow().strftime('%Y-%m-%d')
-    
-    # Parameters to fetch sports news
-    params = {
-        'category': 'sports',
-        'apiKey': SPORTS_API,
-        'language': 'en',
-        'from': current_date,
-        'sortBy': 'publishedAt',
-        'pageSize': 10
+    """Fetch sports headlines from the NFL API."""
+    conn = http.client.HTTPSConnection("nfl-football-api.p.rapidapi.com")
+    headers = {
+        'x-rapidapi-key': "ffda10e22cmshcb6236d6bc8f365p1b8b5djsn88764eb5fd75",
+        'x-rapidapi-host': "nfl-football-api.p.rapidapi.com"
     }
-    
+
     try:
-        # Make the API request
-        response = requests.get(API_URL, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx and 5xx)
-        articles = response.json().get('articles', [])
-        
-        # Debugging: Print fetched articles
-        print("Fetched Sports Headlines:")
-        for article in articles:
-            print(f"Title: {article.get('title')}")
-            print(f"Image: {article.get('urlToImage')}")
-            print(f"URL: {article.get('url')}\n")
-        
-        return articles
+        conn.request("GET", "/nfl-single-news?id=40342801", headers=headers)
+        res = conn.getresponse()
+        data = res.read()
+
+        # Decode JSON response
+        articles = json.loads(data.decode("utf-8"))
+
+        headlines = []
+        # Process the main headlines
+        for article in articles.get('headlines', []):
+            headline = article.get('title', 'No headline available')
+            description = article.get('description', '')
+            image_url = article.get('images', [{}])[0].get('url', '') if article.get('images') else ''
+            web_url = article.get('links', {}).get('web', {}).get('href', '#')
+
+            if image_url:  # Ensure main headline has an image
+                headlines.append({
+                    'headline': headline,
+                    'description': description,
+                    'image_url': image_url,
+                    'web_url': web_url,
+                })
+
+            # Process related articles
+            for related in article.get('related', []):
+                related_headline = related.get('title', 'No related headline available')
+                related_image_url = related.get('images', [{}])[0].get('url', '') if related.get('images') else ''
+                related_web_url = related.get('links', {}).get('web', {}).get('href', '#')
+
+                if related_image_url:  # Ensure related article has an image
+                    headlines.append({
+                        'headline': related_headline,
+                        'description': '',
+                        'image_url': related_image_url,
+                        'web_url': related_web_url,
+                    })
+
+        print("Processed headlines for template:", headlines)
+        return headlines
     except Exception as e:
         print(f"Error fetching sports headlines: {e}")
         return []
+
+    
     
 def get_yahoo_stock_data(ticker):
     """
@@ -166,9 +194,9 @@ def get_yahoo_stock_data(ticker):
         stock_info = stock.info
 
         # Print the entire raw response to the terminal for debugging
-        print(f"Raw data fetched for {ticker}:")
-        for key, value in stock_info.items():
-            print(f"{key}: {value}")
+        #print(f"Raw data fetched for {ticker}:")
+        #for key, value in stock_info.items():
+         #   print(f"{key}: {value}")
 
         # Example of extracting specific fields (you can customize these as needed)
         stock_data = {
@@ -183,13 +211,13 @@ def get_yahoo_stock_data(ticker):
 
         return stock_data
     except Exception as e:
-        print(f"Error fetching stock data for {ticker}: {e}")
+        #print(f"Error fetching stock data for {ticker}: {e}")
         return None
     
 def fetch_full_stock_data_raw(ticker):
     stock = yf.Ticker(ticker)
-    print(f"Raw object for {ticker}: {stock}")
-    print(f"Methods available: {dir(stock)}")
+    #print(f"Raw object for {ticker}: {stock}")
+    #print(f"Methods available: {dir(stock)}")
 
    
 def fetch_weather():

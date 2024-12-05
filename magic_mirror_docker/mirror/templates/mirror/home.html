@@ -181,6 +181,25 @@ background-attachment: fixed;
 }
 
 
+    /* Card Header Specific to Sports Carousel */
+    #sports-carousel-container .card-header {
+        background-color: rgba(191, 87, 0, 0.5); /* Burnt orange with 50% opacity */
+        color: white; /* Text color */
+        font-weight: bold; /* Bold text */
+        text-align: center; /* Center-align text */
+        border-radius: 5px 5px 0 0; /* Rounded corners at the top */
+    }
+
+    /* Ensure uniform image size within the sports carousel */
+    #sports-carousel-container .carousel-item img {
+        width: 100%; /* Ensures full width inside the carousel */
+        height: 400px; /* Adjust to your desired height */
+        object-fit: cover; /* Ensures images cover the container proportionally */
+    }
+
+
+
+
 </style>
 </head>
 <body>
@@ -375,73 +394,92 @@ background-attachment: fixed;
                     
                     
     
-                    <div class="row">
-                        <!-- Stock Market Column -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h2 class="card-title mb-0">Stock Market</h2>
-                                </div>
-                                <div class="card-body">
-                                    {% if stocks %}
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-hover stock-table">
-                                                <thead class="table-dark">
-                                                    <tr>
-                                                        <th>Symbol</th>
-                                                        <th>Price</th>
-                                                        <th>52WK HIGH</th>
-                                                        <th>52WK LOW</th>
-                                                        <th>CHANGE</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for stock in stocks %}
-                                                        <tr>
-                                                            <td>{{ stock.symbol }}</td>
-                                                            <td>{{ stock.price }}</td>
-                                                            <td>{{ stock.fifty_two_week_high }}</td>
-                                                            <td>{{ stock.fifty_two_week_low }}</td>
-                                                            <td>{{ stock.fifty_two_week_change }}</td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    {% else %}
-                                        <p class="text-white">No stock data available at the moment.</p>
-                                    {% endif %}
-                                </div>
+                    <!-- Stock Market Column -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="card-title mb-0">Stock Market</h2>
                             </div>
-                        </div>
-                        
-                    
-                        <!-- Sports Headlines Column -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h2 class="card-title mb-0">Sports Headlines</h2>
-                                </div>
-                                <div class="card-body">
-                                    <div id="sportsHeadlinesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
-                                        <div class="carousel-inner">
-                                            {% for article in headlines %}
-                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                                    <img src="{{ article.urlToImage|default:'https://tse1.mm.bing.net/th?id=OIP.hf0sUX28l1fdqdBYKvmX3gHaFj&pid=Api&P=0&h=180' }}" 
-                                                         class="d-block w-100" 
-                                                         alt="Sports Headline Image">
-                                                    <div class="carousel-caption-below">
-                                                        <p>{{ article.title }}</p>
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
+                            <div class="card-body">
+                                {% if stocks %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover stock-table">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Symbol</th>
+                                                    <th>Price</th>
+                                                    <th>52WK HIGH</th>
+                                                    <th>52WK LOW</th>
+                                                    <th>CHANGE</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stock in stocks %}
+                                                    <tr>
+                                                        <td>{{ stock.symbol }}</td>
+                                                        <td>{{ stock.price }}</td>
+                                                        <td>{{ stock.fifty_two_week_high }}</td>
+                                                        <td>{{ stock.fifty_two_week_low }}</td>
+                                                        <td>{{ stock.fifty_two_week_change }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
+                                {% else %}
+                                    <p class="text-white">No stock data available at the moment.</p>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                     
+               
+                    
+<!-- Sports Headlines Carousel Column -->
+<div id="sports-carousel-container" class="col-md-12">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title mb-0">Sports Headlines</h2>
+        </div>
+        <div class="card-body">
+            {% if sports_headlines %}
+            <div id="sportsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="30000">
+                <div class="carousel-inner">
+                    {% for item in sports_headlines %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <a href="{{ item.web_url }}" target="_blank">
+                            <img src="{{ item.image_url }}" class="d-block w-100 rounded" alt="{{ item.headline }}">
+                        </a>
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+                            <h5>{{ item.headline }}</h5>
+                            <p>{{ item.description }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Carousel Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#sportsCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#sportsCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+            {% else %}
+            <p>No sports headlines at this time.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+                        
+                        
+                    
+
+
 
     </body>
 </html>
@@ -470,7 +508,7 @@ background-attachment: fixed;
     function autoRefresh() {
         setTimeout(function() {
             window.location.reload();
-        }, 300000); // 5 minutes
+        }, 600000); // 5 minutes
     }
 
     // Start updating the time every second
