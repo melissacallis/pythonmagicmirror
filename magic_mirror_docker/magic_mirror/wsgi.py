@@ -14,11 +14,7 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 #application = get_wsgi_application()
 
 import os
-import sys
 from django.core.wsgi import get_wsgi_application
-
-# Add the project directory to the Python path
-sys.path.append('/workspaces/pythonmagicmirror/magic_mirror_docker')
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'magic_mirror.settings')
 
