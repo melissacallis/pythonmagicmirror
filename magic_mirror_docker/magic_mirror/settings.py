@@ -89,7 +89,9 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'magic_mirror.wsgi.application'
+#WSGI_APPLICATION = 'magic_mirror.wsgi.application'
+WSGI_APPLICATION = 'magic_mirror_docker.magic_mirror.wsgi.application'
+
 
 
 # Database
