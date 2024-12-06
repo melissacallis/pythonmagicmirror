@@ -88,6 +88,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'magic_mirror.wsgi.application'
 
 
