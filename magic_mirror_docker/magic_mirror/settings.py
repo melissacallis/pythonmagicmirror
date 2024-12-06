@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
      # Your app
     'mirror',
+    
 ]
 
 MIDDLEWARE = [
