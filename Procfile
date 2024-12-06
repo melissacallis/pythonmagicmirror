@@ -1,2 +1,2 @@
 
-web: gunicorn magic_mirror_docker.wsgi:application --log-file -
+web: gunicorn magic_mirror.wsgi:application --log-file -
